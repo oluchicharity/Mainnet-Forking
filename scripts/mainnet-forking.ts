@@ -10,26 +10,30 @@ async function main() {
     await helpers.impersonateAccount(TOKEN_HOLDER);
     const impersonatedSigner = await ethers.getSigner(TOKEN_HOLDER);
 
+    //The amounts of DAI and USDC i want to add to the liquidity pool
     const amountADesired = ethers.parseUnits("2", 18); // DAI amount
     const amountBDesired = ethers.parseUnits("2", 6); // USDC amount
-    // Define slippage limits using BigNumber methods
+
+    // Used to calculate the minimum amount of tokens i'm are willing to accept, allowing for slippage (price fluctuation)
     const slippageFactor = 95n; // 5% slippage
     const slippageDivisor = 100n;
 
+//ensuring that the minimum amount is a positive number 
     const amountAMin = (amountADesired * slippageFactor) / slippageDivisor;
     const amountBMin = (amountBDesired * slippageFactor) / slippageDivisor;
 
-   // Use Math.max to ensure minimum is 0
-    const minAmountAMin = Number(amountAMin > 0n ? amountAMin : 0n);
-    const minAmountBMin = Number(amountBMin > 0n ? amountBMin : 0n);
+   // Use Math.max to ensure minimum is 0.....unnecessary
+    // const minAmountAMin = Number(amountAMin > 0n ? amountAMin : 0n);
+    // const minAmountBMin = Number(amountBMin > 0n ? amountBMin : 0n);
 
     const to = impersonatedSigner.address; // Recipient address
 
+//Creating instances of the ERC20 and Uniswap Router contracts so we can interact with it
     const USDC_Contract = await ethers.getContractAt("IERC20", USDC, impersonatedSigner);
     const DAI_Contract = await ethers.getContractAt("IERC20", DAI, impersonatedSigner);
     const ROUTER = await ethers.getContractAt("IUniswapV2Router", ROUTER_ADDRESS, impersonatedSigner);
 
-    // Approve USDC spending
+    // Approve USDC and DAI spending
     await USDC_Contract.approve(ROUTER, amountBDesired);
     await DAI_Contract.approve(ROUTER, amountADesired);
 
